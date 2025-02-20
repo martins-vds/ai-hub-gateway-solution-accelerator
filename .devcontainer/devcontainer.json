@@ -20,7 +20,8 @@
 				"ms-azure-devops.azure-pipelines",
 				"github.vscode-github-actions",
 				"ms-dotnettools.csdevkit",
-				"ms-dotnettools.vscodeintellicode-csharp"
+				"ms-dotnettools.vscodeintellicode-csharp",
+				"ms-azuretools.vscode-azurelogicapps"
 			]
 		}
 	}
