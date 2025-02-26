@@ -109,17 +109,15 @@ param apimSubnetPrefix string = '10.170.0.0/26'
 param privateEndpointSubnetPrefix string = '10.170.0.64/26'
 param functionAppSubnetPrefix string = '10.170.0.128/26'
 
-
-
 var openAiPrivateDnsZoneName = 'privatelink.openai.azure.com'
 var keyVaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
 var monitorPrivateDnsZoneName = 'privatelink.monitor.azure.com'
 var eventHubPrivateDnsZoneName = 'privatelink.servicebus.windows.net'
 var cosmosDbPrivateDnsZoneName = 'privatelink.documents.azure.com'
-var storageBlobPrivateDnsZoneName = 'privatelink.blob.core.windows.net'
-var storageFilePrivateDnsZoneName = 'privatelink.file.core.windows.net'
-var storageTablePrivateDnsZoneName = 'privatelink.table.core.windows.net'
-var storageQueuePrivateDnsZoneName = 'privatelink.queue.core.windows.net'
+var storageBlobPrivateDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
+var storageFilePrivateDnsZoneName = 'privatelink.file.${environment().suffixes.storage}'
+var storageTablePrivateDnsZoneName = 'privatelink.table.${environment().suffixes.storage}'
+var storageQueuePrivateDnsZoneName = 'privatelink.queue.${environment().suffixes.storage}'
 
 var privateDnsZoneNames = [
   openAiPrivateDnsZoneName
