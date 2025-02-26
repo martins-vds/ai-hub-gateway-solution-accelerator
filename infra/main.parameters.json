@@ -25,6 +25,9 @@
       "metadata": {
         "description": "The OpenAI endpoints capacity (in thousands of tokens per minute)."
       }
+    },
+    "provisionFunctionApp": {
+      "value": "${PROVISION_FUNCTION_APP=true}"
     }
   }
 }
