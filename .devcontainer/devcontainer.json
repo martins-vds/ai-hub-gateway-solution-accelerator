@@ -21,7 +21,10 @@
 				"github.vscode-github-actions",
 				"ms-dotnettools.csdevkit",
 				"ms-dotnettools.vscodeintellicode-csharp",
-				"ms-azuretools.vscode-azurelogicapps"
+				"ms-azuretools.vscode-azurelogicapps",
+				"ms-azuretools.vscode-azure-github-copilot",
+				"GitHub.copilot",
+				"GitHub.copilot-chat"
 			]
 		}
 	}
