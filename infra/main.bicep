@@ -7,7 +7,22 @@ param environmentName string
 
 @minLength(1)
 @description('Primary location for all resources (filtered on available regions for Azure Open AI Service).')
-@allowed([ 'uaenorth', 'sothafricanorth', 'westeurope', 'southcentralus', 'australiaeast', 'canadaeast', 'eastus', 'eastus2', 'francecentral', 'japaneast', 'northcentralus', 'swedencentral', 'switzerlandnorth', 'uksouth' ])
+@allowed([
+  'uaenorth'
+  'sothafricanorth'
+  'westeurope'
+  'southcentralus'
+  'australiaeast'
+  'canadaeast'
+  'eastus'
+  'eastus2'
+  'francecentral'
+  'japaneast'
+  'northcentralus'
+  'swedencentral'
+  'switzerlandnorth'
+  'uksouth'
+])
 param location string
 
 //Leave blank to use default naming conventions
@@ -22,18 +37,18 @@ param identityName string = ''
 param apimServiceName string = ''
 
 @description('Network type for API Management service. Leave blank to use default naming conventions.')
-@allowed([ 'External', 'Internal' ])
+@allowed(['External', 'Internal'])
 param apimNetworkType string = 'External'
 
 @description('API Management service SKU. Due to networking constraints, only Developer and Premium are supported.')
-@allowed([ 'Developer', 'Premium' ])
+@allowed(['Developer', 'Premium'])
 param apimSku string = 'Developer'
 
 @description('API Management service SKU units.')
 param apimSkuUnits int = 1
 
 @description('Azure OpenAI service public access')
-@allowed([ 'Enabled', 'Disabled' ])
+@allowed(['Enabled', 'Disabled'])
 param openAIExternalNetworkAccess string = 'Disabled'
 
 @description('Name of the Log Analytics workspace. Leave blank to use default naming conventions.')
@@ -84,6 +99,25 @@ param provisionStreamAnalytics bool = false
 @description('This is to use Azure Monitor Private Link Scope for Log Analytics and Application Insights. If exsiting vnet is used, this should not be enabled')
 param useAzureMonitorPrivateLinkScope bool = !useExistingVnet
 
+@description('Use PII redaction. If you want to use Text Analytics for PII redaction, this should be enabled')
+param usePiiRedaction bool = false
+
+@description('Name of the Text Analystics resource. Leave blank to use default naming conventions.')
+param textAnalyticsName string = ''
+
+@description('SKU name for Text Analytics.')
+param textAnalyticsSkuName string = 'F0'
+
+@description('Text Analytics service public access')
+@allowed(['Enabled', 'Disabled'])
+param textAnalyticsExternalNetworkAccess string = 'Disabled'
+
+@description('Name of the Key Vault. Leave blank to use default naming conventions.')
+param keyVaultName string = ''
+
+@description('Key Vault SKU name.')
+param keyVaultSkuName string = 'Standard'
+
 //Networking - VNet
 
 // ONLY for using existing VNet, set useExistingVnet to true and provide the existing VNet details
@@ -110,6 +144,7 @@ param privateEndpointSubnetPrefix string = '10.170.0.64/26'
 param functionAppSubnetPrefix string = '10.170.0.128/26'
 
 var openAiPrivateDnsZoneName = 'privatelink.openai.azure.com'
+var textAnalyticsPrivateDnsZoneName = 'privatelink.cognitiveservices.azure.com'
 var keyVaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
 var monitorPrivateDnsZoneName = 'privatelink.monitor.azure.com'
 var eventHubPrivateDnsZoneName = 'privatelink.servicebus.windows.net'
@@ -123,7 +158,7 @@ var privateDnsZoneNames = [
   openAiPrivateDnsZoneName
   keyVaultPrivateDnsZoneName
   monitorPrivateDnsZoneName
-  eventHubPrivateDnsZoneName 
+  eventHubPrivateDnsZoneName
   cosmosDbPrivateDnsZoneName
   storageBlobPrivateDnsZoneName
   storageFilePrivateDnsZoneName
@@ -150,7 +185,6 @@ param openAiInstances object = {
           name: 'Standard'
           capacity: deploymentCapacity
         }
-        
       }
       {
         name: 'embedding'
@@ -193,7 +227,6 @@ param openAiInstances object = {
           name: 'Standard'
           capacity: deploymentCapacity
         }
-        
       }
     ]
   }
@@ -212,7 +245,6 @@ param openAiInstances object = {
           name: 'Standard'
           capacity: deploymentCapacity
         }
-        
       }
       {
         name: 'embedding'
@@ -260,7 +292,7 @@ param tags object = { 'azd-env-name': environmentName }
 param entraAuth bool = false
 param entraTenantId string = ''
 param entraClientId string = ''
-param entraAudience string = '' 
+param entraAudience string = ''
 
 param usageProcessingLogicAppName string = ''
 
@@ -276,15 +308,17 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   tags: tags
 }
 
-module dnsDeployment './modules/networking/dns.bicep' = [for privateDnsZoneName in privateDnsZoneNames: if(!useExistingVnet) {
-  name: 'dns-deployment-${privateDnsZoneName}'
-  scope: resourceGroup
-  params: {
-    name: privateDnsZoneName
+module dnsDeployment './modules/networking/dns.bicep' = [
+  for privateDnsZoneName in privateDnsZoneNames: if (!useExistingVnet) {
+    name: 'dns-deployment-${privateDnsZoneName}'
+    scope: resourceGroup
+    params: {
+      name: privateDnsZoneName
+    }
   }
-}]
+]
 
-module vnet './modules/networking/vnet.bicep' = if(!useExistingVnet) {
+module vnet './modules/networking/vnet.bicep' = if (!useExistingVnet) {
   name: 'vnet'
   scope: resourceGroup
   params: {
@@ -299,6 +333,7 @@ module vnet './modules/networking/vnet.bicep' = if(!useExistingVnet) {
     apimSubnetAddressPrefix: apimSubnetPrefix
     privateEndpointSubnetAddressPrefix: privateEndpointSubnetPrefix
     functionAppSubnetAddressPrefix: functionAppSubnetPrefix
+    enableServiceEndpointsForAPIM: true
     location: location
     tags: tags
     privateDnsZoneNames: privateDnsZoneNames
@@ -309,7 +344,7 @@ module vnet './modules/networking/vnet.bicep' = if(!useExistingVnet) {
   ]
 }
 
-module vnetExisting './modules/networking/vnet-existing.bicep' = if(useExistingVnet) {
+module vnetExisting './modules/networking/vnet-existing.bicep' = if (useExistingVnet) {
   name: 'vnetExisting'
   scope: resourceGroup
   params: {
@@ -334,6 +369,18 @@ module apimManagedIdentity './modules/security/managed-identity-apim.bicep' = {
   }
 }
 
+module textAnalyticsManagedIdentity './modules/security/managed-identity-apim.bicep' = {
+  name: 'textAnalytics-managed-identity'
+  scope: resourceGroup
+  params: {
+    name: !empty(identityName)
+      ? identityName
+      : '${abbrs.managedIdentityUserAssignedIdentities}textanalytics-${resourceToken}'
+    location: location
+    tags: tags
+  }
+}
+
 module usageManagedIdentity './modules/security/managed-identity-stream-analytics.bicep' = {
   name: 'usage-managed-identity'
   scope: resourceGroup
@@ -351,14 +398,26 @@ module monitoring './modules/monitor/monitoring.bicep' = {
   params: {
     location: location
     tags: tags
-    logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
-    apimApplicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}apim-${resourceToken}'
-    apimApplicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}apim-${resourceToken}'
-    functionApplicationInsightsName: !empty(funcApplicationInsightsName) ? funcApplicationInsightsName : '${abbrs.insightsComponents}func-${resourceToken}'
-    functionApplicationInsightsDashboardName: !empty(funcAplicationInsightsDashboardName) ? funcAplicationInsightsDashboardName : '${abbrs.portalDashboards}func-${resourceToken}'
+    logAnalyticsName: !empty(logAnalyticsName)
+      ? logAnalyticsName
+      : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
+    apimApplicationInsightsName: !empty(applicationInsightsName)
+      ? applicationInsightsName
+      : '${abbrs.insightsComponents}apim-${resourceToken}'
+    apimApplicationInsightsDashboardName: !empty(applicationInsightsDashboardName)
+      ? applicationInsightsDashboardName
+      : '${abbrs.portalDashboards}apim-${resourceToken}'
+    functionApplicationInsightsName: !empty(funcApplicationInsightsName)
+      ? funcApplicationInsightsName
+      : '${abbrs.insightsComponents}func-${resourceToken}'
+    functionApplicationInsightsDashboardName: !empty(funcAplicationInsightsDashboardName)
+      ? funcAplicationInsightsDashboardName
+      : '${abbrs.portalDashboards}func-${resourceToken}'
     vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
-    privateEndpointSubnetName: useExistingVnet ? vnetExisting.outputs.privateEndpointSubnetName : vnet.outputs.privateEndpointSubnetName
+    privateEndpointSubnetName: useExistingVnet
+      ? vnetExisting.outputs.privateEndpointSubnetName
+      : vnet.outputs.privateEndpointSubnetName
     applicationInsightsDnsZoneName: monitorPrivateDnsZoneName
     createDashboard: createAppInsightsDashboard
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
@@ -372,35 +431,123 @@ module monitoring './modules/monitor/monitoring.bicep' = {
 }
 
 @batchSize(1)
-module openAis 'modules/ai/cognitiveservices.bicep' = [for (config, i) in items(openAiInstances): {
-  name: '${config.value.name}-${resourceToken}'
+module openAis 'modules/ai/cognitiveservices.bicep' = [
+  for (config, i) in items(openAiInstances): {
+    name: '${config.value.name}-${resourceToken}'
+    scope: resourceGroup
+    params: {
+      name: '${config.value.name}-${resourceToken}'
+      location: config.value.location
+      tags: tags
+      managedIdentityName: apimManagedIdentity.outputs.managedIdentityName
+      vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
+      vNetLocation: useExistingVnet ? vnetExisting.outputs.location : vnet.outputs.location
+      privateEndpointSubnetName: useExistingVnet
+        ? vnetExisting.outputs.privateEndpointSubnetName
+        : vnet.outputs.privateEndpointSubnetName
+      privateEndpointName: '${config.value.name}-pe-${resourceToken}'
+      publicNetworkAccess: apimNetworkType == 'External' ? 'Enabled' : 'Disabled'
+      virtualNetworkRules: apimNetworkType == 'External'
+        ? [
+            {
+              id: vnet.outputs.apimSubnetId
+            }
+          ]
+        : []
+      privateDnsZoneName: openAiPrivateDnsZoneName
+      sku: {
+        name: openAiSkuName
+      }
+      deploymentCapacity: deploymentCapacity
+      deployments: config.value.deployments
+      vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
+      dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
+      dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
+    }
+    dependsOn: [
+      vnet
+      vnetExisting
+      apimManagedIdentity
+    ]
+  }
+]
+
+module vault 'br/public:avm/res/key-vault/vault:0.11.0' = {
+  name: 'vault'
   scope: resourceGroup
   params: {
-    name: '${config.value.name}-${resourceToken}'
-    location: config.value.location
+    name: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
+    enablePurgeProtection: false
+    enableRbacAuthorization: true
+    location: location
+    sku: keyVaultSkuName
+    roleAssignments: [
+      {
+        principalId: apimManagedIdentity.outputs.principalId
+        roleDefinitionIdOrName: 'Key Vault Secrets User'
+      }
+    ]
+    networkAcls: {
+      defaultAction: 'Deny'
+      ipRules: []
+      virtualNetworkRules: apimNetworkType == 'External'
+        ? [
+            {
+              id: vnet.outputs.apimSubnetId
+            }
+          ]
+        : []
+    }
+    publicNetworkAccess: apimNetworkType == 'External' ? 'Enabled' : 'Disabled'
+  }
+}
+
+var textAnalyticsResourceName = !empty(textAnalyticsName)
+  ? textAnalyticsName
+  : '${abbrs.cognitiveServicesTextAnalytics}${resourceToken}'
+
+module textAnalytics 'modules/ai/cognitiveservices.bicep' = if (usePiiRedaction) {
+  name: 'text-analytics'
+  scope: resourceGroup
+  params: {
+    name: textAnalyticsResourceName
+    location: location
     tags: tags
-    managedIdentityName: apimManagedIdentity.outputs.managedIdentityName
+    kind: 'TextAnalytics'
+    managedIdentityName: textAnalyticsManagedIdentity.outputs.managedIdentityName
     vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
     vNetLocation: useExistingVnet ? vnetExisting.outputs.location : vnet.outputs.location
-    privateEndpointSubnetName: useExistingVnet ? vnetExisting.outputs.privateEndpointSubnetName : vnet.outputs.privateEndpointSubnetName
-    openAiPrivateEndpointName: '${config.value.name}-pe-${resourceToken}'
-    publicNetworkAccess: openAIExternalNetworkAccess
-    openAiDnsZoneName: openAiPrivateDnsZoneName
+    privateEndpointSubnetName: useExistingVnet
+      ? vnetExisting.outputs.privateEndpointSubnetName
+      : vnet.outputs.privateEndpointSubnetName
+    privateEndpointName: '${abbrs.privateEndpoints}textanalytics-${resourceToken}'
+    publicNetworkAccess: apimNetworkType == 'External' ? 'Enabled' : 'Disabled'
+    virtualNetworkRules: apimNetworkType == 'External'
+      ? [
+          {
+            id: vnet.outputs.apimSubnetId
+          }
+        ]
+      : []
+    privateDnsZoneName: textAnalyticsPrivateDnsZoneName
     sku: {
-      name: openAiSkuName
+      name: textAnalyticsSkuName
     }
-    deploymentCapacity: deploymentCapacity
-    deployments: config.value.deployments
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
+    secretsExportConfiguration: {
+      keyVaultResourceId: vault.outputs.resourceId
+      accessKey1Name: '${textAnalyticsResourceName}-key1'
+      accessKey2Name: '${textAnalyticsResourceName}-key2'
+    }
   }
   dependsOn: [
     vnet
     vnetExisting
-    apimManagedIdentity
+    textAnalyticsManagedIdentity
   ]
-}]
+}
 
 module eventHub './modules/event-hub/event-hub.bicep' = {
   name: 'event-hub'
@@ -411,7 +558,9 @@ module eventHub './modules/event-hub/event-hub.bicep' = {
     tags: tags
     eventHubPrivateEndpointName: 'eh-pe-${resourceToken}'
     vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
-    privateEndpointSubnetName: useExistingVnet ? vnetExisting.outputs.privateEndpointSubnetName : vnet.outputs.privateEndpointSubnetName
+    privateEndpointSubnetName: useExistingVnet
+      ? vnetExisting.outputs.privateEndpointSubnetName
+      : vnet.outputs.privateEndpointSubnetName
     eventHubDnsZoneName: eventHubPrivateDnsZoneName
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
@@ -431,10 +580,10 @@ module apim './modules/apim/apim.bicep' = {
     location: location
     tags: tags
     applicationInsightsName: monitoring.outputs.applicationInsightsName
-    openAiUris: [for i in range(0, length(openAiInstances)): openAis[i].outputs.openAiEndpointUri]
+    openAiUris: [for i in range(0, length(openAiInstances)): openAis[i].outputs.endpointUri]
     managedIdentityName: apimManagedIdentity.outputs.managedIdentityName
     entraAuth: entraAuth
-    clientAppId: entraAuth ? entraClientId : null 
+    clientAppId: entraAuth ? entraClientId : null
     tenantId: entraAuth ? entraTenantId : null
     audience: entraAuth ? entraAudience : null
     eventHubName: eventHub.outputs.eventHubName
@@ -445,6 +594,23 @@ module apim './modules/apim/apim.bicep' = {
     aiSearchInstances: aiSearchInstances
     sku: apimSku
     skuCount: apimSkuUnits
+    additionalNamedValues: [
+      {
+        displayName: 'languageServiceUri'
+        name: 'languageServiceUri'
+        secret: false
+        value: textAnalytics.outputs.endpointUri
+      }
+      {
+        displayName: 'languageServiceApiKey'
+        name: 'languageServiceApiKey'
+        secret: true
+        keyVault: {
+          identityClientId: apimManagedIdentity.outputs.clientId
+          secretIdentifier: textAnalytics.outputs.exportedSecrets['${textAnalyticsResourceName}-key1'].secretUri
+        }
+      }
+    ]
   }
   dependsOn: [
     vnet
@@ -458,16 +624,28 @@ module cosmosDb './modules/cosmos-db/cosmos-db.bicep' = {
   name: 'cosmos-db'
   scope: resourceGroup
   params: {
-    accountName: !empty(cosmosDbAccountName) ? cosmosDbAccountName : '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
+    accountName: !empty(cosmosDbAccountName)
+      ? cosmosDbAccountName
+      : '${abbrs.documentDBDatabaseAccounts}${resourceToken}'
     location: location
     tags: tags
     vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
     cosmosDnsZoneName: cosmosDbPrivateDnsZoneName
     cosmosPrivateEndpointName: '${abbrs.documentDBDatabaseAccounts}pe-${resourceToken}'
-    privateEndpointSubnetName: useExistingVnet ? vnetExisting.outputs.privateEndpointSubnetName : vnet.outputs.privateEndpointSubnetName
+    privateEndpointSubnetName: useExistingVnet
+      ? vnetExisting.outputs.privateEndpointSubnetName
+      : vnet.outputs.privateEndpointSubnetName
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
+    publicAccess: apimNetworkType == 'External' ? 'Enabled' : 'Disabled'
+    virtualNetworkRules: apimNetworkType == 'External'
+      ? [
+          {
+            id: vnet.outputs.apimSubnetId
+          }
+        ]
+      : []
   }
   dependsOn: [
     vnet
@@ -475,7 +653,7 @@ module cosmosDb './modules/cosmos-db/cosmos-db.bicep' = {
   ]
 }
 
-module streamAnalyticsJob './modules/stream-analytics/stream-analytics.bicep' = if(provisionStreamAnalytics) {
+module streamAnalyticsJob './modules/stream-analytics/stream-analytics.bicep' = if (provisionStreamAnalytics) {
   name: 'stream-analytics-job'
   scope: resourceGroup
   params: {
@@ -500,7 +678,9 @@ module storageAccount './modules/functionapp/storageaccount.bicep' = {
     storageAccountName: !empty(storageAccountName) ? storageAccountName : 'funcusage${resourceToken}'
     functionAppManagedIdentityName: usageManagedIdentity.outputs.managedIdentityName
     vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
-    privateEndpointSubnetName: useExistingVnet ? vnetExisting.outputs.privateEndpointSubnetName : vnet.outputs.privateEndpointSubnetName
+    privateEndpointSubnetName: useExistingVnet
+      ? vnetExisting.outputs.privateEndpointSubnetName
+      : vnet.outputs.privateEndpointSubnetName
     storageBlobDnsZoneName: storageBlobPrivateDnsZoneName
     storageFileDnsZoneName: storageFilePrivateDnsZoneName
     storageTableDnsZoneName: storageTablePrivateDnsZoneName
@@ -521,13 +701,15 @@ module storageAccount './modules/functionapp/storageaccount.bicep' = {
   ]
 }
 
-module functionApp './modules/functionapp/functionapp.bicep' = if(provisionFunctionApp) {
+module functionApp './modules/functionapp/functionapp.bicep' = if (provisionFunctionApp) {
   name: 'usageFunctionApp'
   scope: resourceGroup
   params: {
     location: location
     tags: tags
-    functionAppName: !empty(usageProcessingFunctionAppName) ? usageProcessingFunctionAppName : '${abbrs.webSitesFunctions}usage-${resourceToken}'
+    functionAppName: !empty(usageProcessingFunctionAppName)
+      ? usageProcessingFunctionAppName
+      : '${abbrs.webSitesFunctions}usage-${resourceToken}'
     azdserviceName: 'usageProcessingFunctionApp'
     storageAccountName: storageAccount.outputs.storageAccountName
     functionAppIdentityName: usageManagedIdentity.outputs.managedIdentityName
@@ -557,8 +739,10 @@ module logicApp './modules/logicapp/logicapp.bicep' = {
   params: {
     location: location
     tags: tags
-    logicAppName: !empty(usageProcessingLogicAppName) ? usageProcessingLogicAppName : '${abbrs.logicWorkflows}usage-${resourceToken}'
-    azdserviceName: 'usageProcessingLogicApp'   
+    logicAppName: !empty(usageProcessingLogicAppName)
+      ? usageProcessingLogicAppName
+      : '${abbrs.logicWorkflows}usage-${resourceToken}'
+    azdserviceName: 'usageProcessingLogicApp'
     storageAccountName: storageAccount.outputs.storageAccountName
     applicationInsightsName: monitoring.outputs.funcApplicationInsightsName
     skuFamily: 'WS'

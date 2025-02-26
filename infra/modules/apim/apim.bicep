@@ -26,6 +26,8 @@ param enableAIModelInference bool = true
 
 param enableOpenAIRealtime bool = true
 
+param additionalNamedValues namedValueType[] = []
+
 // Networking
 param apimNetworkType string = 'External'
 param apimSubnetId string
@@ -42,7 +44,7 @@ var apiManagementMinApiVersion = '2021-08-01'
 // Add this variable near the top with other variables
 // var apimZones = sku == 'Premium' && skuCount > 1 ? ['1','2','3'] : []
 // Replace the existing apimZones variable
-var apimZones = (sku == 'Premium' && skuCount > 1) ? (skuCount == 2 ? ['1','2'] : ['1','2','3']) : []
+var apimZones = (sku == 'Premium' && skuCount > 1) ? (skuCount == 2 ? ['1', '2'] : ['1', '2', '3']) : []
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
@@ -81,22 +83,24 @@ resource apimService 'Microsoft.ApiManagement/service@2021-08-01' = {
       minApiVersion: apiManagementMinApiVersion
     }
     // Custom properties are not supported for Consumption SKU
-    customProperties: sku == 'Consumption' ? {} : {
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11': 'false'
-      'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30': 'false'
-    }
+    customProperties: sku == 'Consumption'
+      ? {}
+      : {
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_GCM_SHA256': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA256': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA256': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_256_CBC_SHA': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TLS_RSA_WITH_AES_128_CBC_SHA': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Ciphers.TripleDes168': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls10': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Tls11': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Protocols.Ssl30': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls10': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Tls11': 'false'
+          'Microsoft.WindowsAzure.ApiManagement.Gateway.Security.Backend.Protocols.Ssl30': 'false'
+        }
   }
   zones: apimZones
 }
@@ -109,7 +113,7 @@ module apimOpenaiApi './api.bicep' = {
     path: 'openai'
     apiRevision: '1'
     apiDispalyName: 'Azure OpenAI API'
-    subscriptionRequired: entraAuth ? false:true
+    subscriptionRequired: entraAuth ? false : true
     subscriptionKeyName: 'api-key'
     openApiSpecification: string(loadYamlContent('./openai-api/oai-api-spec-2024-10-21.yaml'))
     apiDescription: 'Azure OpenAI API'
@@ -136,7 +140,7 @@ module apimAiSearchApi './api.bicep' = if (enableAzureAISearch) {
     path: 'search'
     apiRevision: '1'
     apiDispalyName: 'Azure AI Search API'
-    subscriptionRequired: entraAuth ? false:true
+    subscriptionRequired: entraAuth ? false : true
     subscriptionKeyName: 'api-key'
     openApiSpecification: loadTextContent('./ai-search-api/ai-search-api-spec.yaml')
     apiDescription: 'Azure AI Search APIs'
@@ -160,7 +164,7 @@ module apimAiModelInferenceApi './api.bicep' = if (enableAIModelInference) {
     path: 'models'
     apiRevision: '1'
     apiDispalyName: 'AI Model Inference API'
-    subscriptionRequired: entraAuth ? false:true
+    subscriptionRequired: entraAuth ? false : true
     subscriptionKeyName: 'api-key'
     openApiSpecification: loadTextContent('./ai-model-inference/ai-model-inference-api-spec.yaml')
     apiDescription: 'Access to AI inference models published through Azure AI Foundry'
@@ -225,7 +229,7 @@ resource retailProductOpenAIApi 'Microsoft.ApiManagement/service/products/apiLin
   }
 }
 
-resource retailProductPolicy 'Microsoft.ApiManagement/service/products/policies@2022-08-01' =  {
+resource retailProductPolicy 'Microsoft.ApiManagement/service/products/policies@2022-08-01' = {
   name: 'policy'
   parent: retailProduct
   properties: {
@@ -270,7 +274,7 @@ resource hrProductOpenAIApi 'Microsoft.ApiManagement/service/products/apiLinks@2
   }
 }
 
-resource hrProductPolicy 'Microsoft.ApiManagement/service/products/policies@2022-08-01' =  {
+resource hrProductPolicy 'Microsoft.ApiManagement/service/products/policies@2022-08-01' = {
   name: 'policy'
   parent: hrProduct
   properties: {
@@ -293,7 +297,7 @@ resource hrSubscription 'Microsoft.ApiManagement/service/subscriptions@2022-08-0
 }
 
 // Create Search-HR product
-resource searchHRProduct 'Microsoft.ApiManagement/service/products@2022-08-01' = if(enableAzureAISearch) {
+resource searchHRProduct 'Microsoft.ApiManagement/service/products@2022-08-01' = if (enableAzureAISearch) {
   name: 'src-hr-assistant'
   parent: apimService
   properties: {
@@ -315,7 +319,7 @@ resource searchHRProductAISearchApi 'Microsoft.ApiManagement/service/products/ap
   }
 }
 
-resource searchHRProductProductPolicy 'Microsoft.ApiManagement/service/products/policies@2022-08-01' =  if (enableAzureAISearch) {
+resource searchHRProductProductPolicy 'Microsoft.ApiManagement/service/products/policies@2022-08-01' = if (enableAzureAISearch) {
   name: 'policy'
   parent: searchHRProduct
   properties: {
@@ -334,33 +338,37 @@ resource searchHRSubscription 'Microsoft.ApiManagement/service/subscriptions@202
   }
 }
 
-resource openAiBackends 'Microsoft.ApiManagement/service/backends@2022-08-01' = [for (openAiUri, i) in openAiUris: {
-  name: '${openAiApiBackendId}-${i}'
-  parent: apimService
-  properties: {
-    description: openAiApiBackendId
-    url: openAiUri
-    protocol: 'http'
-    tls: {
-      validateCertificateChain: true
-      validateCertificateName: true
+resource openAiBackends 'Microsoft.ApiManagement/service/backends@2022-08-01' = [
+  for (openAiUri, i) in openAiUris: {
+    name: '${openAiApiBackendId}-${i}'
+    parent: apimService
+    properties: {
+      description: openAiApiBackendId
+      url: openAiUri
+      protocol: 'http'
+      tls: {
+        validateCertificateChain: true
+        validateCertificateName: true
+      }
     }
   }
-}]
+]
 
-resource aiSearchBackends 'Microsoft.ApiManagement/service/backends@2022-08-01' = [for (aiSearchInstance, i) in aiSearchInstances: if(enableAzureAISearch) {
-  name: aiSearchInstance.name
-  parent: apimService
-  properties: {
-    description: aiSearchInstance.description
-    url: aiSearchInstance.url
-    protocol: 'http'
-    tls: {
-      validateCertificateChain: true
-      validateCertificateName: true
+resource aiSearchBackends 'Microsoft.ApiManagement/service/backends@2022-08-01' = [
+  for (aiSearchInstance, i) in aiSearchInstances: if (enableAzureAISearch) {
+    name: aiSearchInstance.name
+    parent: apimService
+    properties: {
+      description: aiSearchInstance.description
+      url: aiSearchInstance.url
+      protocol: 'http'
+      tls: {
+        validateCertificateChain: true
+        validateCertificateName: true
+      }
     }
   }
-}]
+]
 
 resource apimOpenaiApiUamiNamedValue 'Microsoft.ApiManagement/service/namedValues@2022-08-01' = {
   name: openAiApiUamiNamedValue
@@ -399,7 +407,7 @@ resource apiopenAiApiTenantNamedValue 'Microsoft.ApiManagement/service/namedValu
     value: tenantId
   }
 }
-resource apimOpenaiApiAudienceiNamedValue 'Microsoft.ApiManagement/service/namedValues@2022-08-01' =  {
+resource apimOpenaiApiAudienceiNamedValue 'Microsoft.ApiManagement/service/namedValues@2022-08-01' = {
   name: openAiApiAudienceNamedValue
   parent: apimService
   properties: {
@@ -408,6 +416,19 @@ resource apimOpenaiApiAudienceiNamedValue 'Microsoft.ApiManagement/service/named
     value: audience
   }
 }
+
+resource namedValues 'Microsoft.ApiManagement/service/namedValues@2022-08-01' = [
+  for namedValue in additionalNamedValues: {
+    name: namedValue.name
+    parent: apimService
+    properties: {
+      displayName: namedValue.displayName
+      secret: namedValue.secret
+      value: namedValue.?value
+      keyVault: namedValue.?keyVault
+    }
+  }
+]
 
 // Adding Policy Fragments
 resource aadAuthPolicyFragment 'Microsoft.ApiManagement/service/policyFragments@2022-08-01' = {
@@ -462,8 +483,7 @@ resource openAIUsageStreamingPolicyFragment 'Microsoft.ApiManagement/service/pol
     value: loadTextContent('./policies/frag-openai-usage-streaming.xml')
     format: 'rawxml'
   }
-  dependsOn: [
-  ]
+  dependsOn: []
 }
 
 resource aiUsagePolicyFragment 'Microsoft.ApiManagement/service/policyFragments@2022-08-01' = {
@@ -596,3 +616,17 @@ output apimOpenaiApiPath string = apimOpenaiApi.outputs.path
 
 @description('Gateway URL for the deployed API Management resource.')
 output apimGatewayUrl string = apimService.properties.gatewayUrl
+
+@export()
+type namedValueType = {
+  displayName: string
+  name: string
+  secret: bool
+  value: string?
+  keyVault: keyVaultType?
+}
+
+type keyVaultType = {
+  identityClientId: string
+  secretIdentifier: string
+}

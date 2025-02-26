@@ -86,6 +86,7 @@ param vNetName string
 param privateEndpointSubnetName string
 param cosmosDnsZoneName string
 param publicAccess string = 'Disabled'
+param virtualNetworkRules array = []
 
 // Use existing network/dns zone
 param dnsZoneRG string
@@ -115,6 +116,7 @@ resource account 'Microsoft.DocumentDB/databaseAccounts@2024-02-15-preview' = {
     enableAutomaticFailover: systemManagedFailover
     disableKeyBasedMetadataWriteAccess: true
     publicNetworkAccess: publicAccess
+    virtualNetworkRules: virtualNetworkRules
   }
 }
 

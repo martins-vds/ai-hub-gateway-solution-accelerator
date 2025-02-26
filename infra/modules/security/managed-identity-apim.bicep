@@ -39,3 +39,5 @@ resource eventHubsDataSenderRoleAssignment 'Microsoft.Authorization/roleAssignme
 
 
 output managedIdentityName string = managedIdentity.name
+output clientId string = managedIdentity.properties.clientId
+output principalId string = managedIdentity.properties.principalId

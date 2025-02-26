@@ -1,3 +1,5 @@
+import * as utils from 'br:mcr.microsoft.com/bicep/avm/res/cognitive-services/account:0.10.0'
+
 param name string
 param location string = resourceGroup().location
 param tags object = {}
@@ -11,11 +13,16 @@ param deploymentCapacity int = 1
 
 // Networking
 param publicNetworkAccess string = 'Disabled'
-param openAiPrivateEndpointName string
+param privateEndpointName string
 param vNetName string
 param vNetLocation string
 param privateEndpointSubnetName string
-param openAiDnsZoneName string
+param privateDnsZoneName string
+
+param ipRules array = []
+param virtualNetworkRules array = []
+
+param secretsExportConfiguration utils.secretsExportConfigurationType?
 
 // Use existing network/dns zone
 param dnsZoneRG string
@@ -48,30 +55,33 @@ resource account 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
     }
   }
   properties: {
+    disableLocalAuth: kind == 'TextAnalytics' ? false : true
     customSubDomainName: toLower(name)
     publicNetworkAccess: publicNetworkAccess
     networkAcls: {
       defaultAction: 'Deny'
-      ipRules: []
-      virtualNetworkRules: []
+      ipRules: ipRules
+      virtualNetworkRules: virtualNetworkRules
     }
   }
   sku: sku
 }
 
 @batchSize(1)
-resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [for deployment in deployments: {
-  parent: account
-  name: deployment.name
-  properties: {
-    model: deployment.model
-    raiPolicyName: contains(deployment, 'raiPolicyName') ? deployment.raiPolicyName : null
+resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [
+  for deployment in deployments: {
+    parent: account
+    name: deployment.name
+    properties: {
+      model: deployment.model
+      raiPolicyName: deployment.?raiPolicyName ?? null
+    }
+    sku: deployment.?sku ?? {
+      name: 'Standard'
+      capacity: deploymentCapacity
+    }
   }
-  sku: contains(deployment, 'sku') ? deployment.sku : {
-    name: 'Standard'
-    capacity: deploymentCapacity
-  }
-}]
+]
 
 module privateEndpoint '../networking/private-endpoint.bicep' = {
   name: '${account.name}-privateEndpoint'
@@ -79,8 +89,8 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
     groupIds: [
       'account'
     ]
-    dnsZoneName: openAiDnsZoneName
-    name: openAiPrivateEndpointName
+    dnsZoneName: privateDnsZoneName
+    name: privateEndpointName
     privateLinkServiceId: account.id
     location: vNetLocation
     privateEndpointSubnetId: subnet.id
@@ -92,5 +102,42 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
   ]
 }
 
-output openAiName string = account.name
-output openAiEndpointUri string = '${account.properties.endpoint}openai/'
+// Copied from: https://github.com/Azure/bicep-registry-modules/blob/7732c3fd13eb502fdbd30d8c51f88ed3c0ae5dc9/avm/res/cognitive-services/account/main.bicep#L489
+
+module secretsExport '../security/keyVaultExport.bicep' = if (secretsExportConfiguration != null) {
+  name: '${account.name}-secrets-kv'
+  scope: resourceGroup(
+    split(secretsExportConfiguration.?keyVaultResourceId!, '/')[2],
+    split(secretsExportConfiguration.?keyVaultResourceId!, '/')[4]
+  )
+  params: {
+    keyVaultName: last(split(secretsExportConfiguration.?keyVaultResourceId!, '/'))
+    secretsToSet: union(
+      [],
+      contains(secretsExportConfiguration!, 'accessKey1Name')
+        ? [
+            {
+              name: secretsExportConfiguration!.?accessKey1Name
+              value: account.listKeys().key1
+            }
+          ]
+        : [],
+      contains(secretsExportConfiguration!, 'accessKey2Name')
+        ? [
+            {
+              name: secretsExportConfiguration!.?accessKey2Name
+              value: account.listKeys().key2
+            }
+          ]
+        : []
+    )
+  }
+}
+
+output name string = account.name
+output endpointUri string = kind == 'OpenAI' ? '${account.properties.endpoint}openai/' : account.properties.endpoint
+import { secretsOutputType } from 'br/public:avm/utl/types/avm-common-types:0.4.0'
+@description('A hashtable of references to the secrets exported to the provided Key Vault. The key of each reference is each secret\'s name.')
+output exportedSecrets secretsOutputType = (secretsExportConfiguration != null)
+  ? toObject(secretsExport.outputs.secretsSet, secret => last(split(secret.secretResourceId, '/')), secret => secret)
+  : {}
