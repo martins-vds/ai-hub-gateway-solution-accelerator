@@ -396,7 +396,7 @@ resource apiopenAiApiEntraNamedValue 'Microsoft.ApiManagement/service/namedValue
   properties: {
     displayName: openAiApiEntraNamedValue
     secret: false
-    value: entraAuth
+    value: string(entraAuth)
   }
 }
 resource apiopenAiApiClientNamedValue 'Microsoft.ApiManagement/service/namedValues@2022-08-01' = {

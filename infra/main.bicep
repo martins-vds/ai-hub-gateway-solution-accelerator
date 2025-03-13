@@ -47,10 +47,6 @@ param apimSku string = 'Developer'
 @description('API Management service SKU units.')
 param apimSkuUnits int = 1
 
-@description('Azure OpenAI service public access')
-@allowed(['Enabled', 'Disabled'])
-param openAIExternalNetworkAccess string = 'Disabled'
-
 @description('Name of the Log Analytics workspace. Leave blank to use default naming conventions.')
 param logAnalyticsName string = ''
 
