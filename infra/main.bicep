@@ -108,10 +108,6 @@ param textAnalyticsName string = ''
 @description('SKU name for Text Analytics.')
 param textAnalyticsSkuName string = 'F0'
 
-@description('Text Analytics service public access')
-@allowed(['Enabled', 'Disabled'])
-param textAnalyticsExternalNetworkAccess string = 'Disabled'
-
 @description('Name of the Key Vault. Leave blank to use default naming conventions.')
 param keyVaultName string = ''
 
@@ -423,11 +419,7 @@ module monitoring './modules/monitor/monitoring.bicep' = {
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
     usePrivateLinkScope: useAzureMonitorPrivateLinkScope
-  }
-  dependsOn: [
-    vnet
-    vnetExisting
-  ]
+  }  
 }
 
 @batchSize(1)
@@ -463,12 +455,7 @@ module openAis 'modules/ai/cognitiveservices.bicep' = [
       vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
       dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
       dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
-    }
-    dependsOn: [
-      vnet
-      vnetExisting
-      apimManagedIdentity
-    ]
+    }    
   }
 ]
 
@@ -542,11 +529,6 @@ module textAnalytics 'modules/ai/cognitiveservices.bicep' = if (usePiiRedaction)
       accessKey2Name: '${textAnalyticsResourceName}-key2'
     }
   }
-  dependsOn: [
-    vnet
-    vnetExisting
-    textAnalyticsManagedIdentity
-  ]
 }
 
 module eventHub './modules/event-hub/event-hub.bicep' = {
@@ -565,11 +547,7 @@ module eventHub './modules/event-hub/event-hub.bicep' = {
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
-  }
-  dependsOn: [
-    vnet
-    vnetExisting
-  ]
+  } 
 }
 
 module apim './modules/apim/apim.bicep' = {
@@ -597,13 +575,7 @@ module apim './modules/apim/apim.bicep' = {
     enablePiiRedaction: usePiiRedaction
     languageServiceUri: textAnalytics.outputs.endpointUri
     languageServiceKeySecretUri: textAnalytics.outputs.exportedSecrets['${textAnalyticsResourceName}-key1'].secretUri
-  }
-  dependsOn: [
-    vnet
-    vnetExisting
-    apimManagedIdentity
-    eventHub
-  ]
+  }  
 }
 
 module cosmosDb './modules/cosmos-db/cosmos-db.bicep' = {
@@ -632,11 +604,7 @@ module cosmosDb './modules/cosmos-db/cosmos-db.bicep' = {
           }
         ]
       : []
-  }
-  dependsOn: [
-    vnet
-    vnetExisting
-  ]
+  }  
 }
 
 module streamAnalyticsJob './modules/stream-analytics/stream-analytics.bicep' = if (provisionStreamAnalytics) {
@@ -680,11 +648,7 @@ module storageAccount './modules/functionapp/storageaccount.bicep' = {
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
-  }
-  dependsOn: [
-    vnet
-    vnetExisting
-  ]
+  }  
 }
 
 module functionApp './modules/functionapp/functionapp.bicep' = if (provisionFunctionApp) {
@@ -707,16 +671,7 @@ module functionApp './modules/functionapp/functionapp.bicep' = if (provisionFunc
     cosmosContainerName: cosmosDb.outputs.cosmosDbContainerName
     functionAppSubnetId: useExistingVnet ? vnetExisting.outputs.functionAppSubnetId : vnet.outputs.functionAppSubnetId
     functionContentShareName: functionContentShareName
-  }
-  dependsOn: [
-    vnet
-    vnetExisting
-    storageAccount
-    usageManagedIdentity
-    monitoring
-    eventHub
-    cosmosDb
-  ]
+  }  
 }
 
 module logicApp './modules/logicapp/logicapp.bicep' = {
@@ -746,15 +701,7 @@ module logicApp './modules/logicapp/logicapp.bicep' = {
     apimAppInsightsName: monitoring.outputs.applicationInsightsName
     functionAppSubnetId: useExistingVnet ? vnetExisting.outputs.functionAppSubnetId : vnet.outputs.functionAppSubnetId
     fileShareName: logicContentShareName
-  }
-  dependsOn: [
-    vnet
-    vnetExisting
-    storageAccount
-    monitoring
-    eventHub
-    cosmosDb
-  ]
+  }  
 }
 
 output APIM_NAME string = apim.outputs.apimName
