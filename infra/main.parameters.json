@@ -28,6 +28,9 @@
     },
     "provisionFunctionApp": {
       "value": "${PROVISION_FUNCTION_APP=true}"
+    },
+    "usePiiRedaction":{
+      "value": "${USE_PII_REDACTION=true}"
     }
   }
 }
