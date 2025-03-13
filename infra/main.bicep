@@ -594,23 +594,9 @@ module apim './modules/apim/apim.bicep' = {
     aiSearchInstances: aiSearchInstances
     sku: apimSku
     skuCount: apimSkuUnits
-    additionalNamedValues: [
-      {
-        displayName: 'languageServiceUri'
-        name: 'languageServiceUri'
-        secret: false
-        value: textAnalytics.outputs.endpointUri
-      }
-      {
-        displayName: 'languageServiceApiKey'
-        name: 'languageServiceApiKey'
-        secret: true
-        keyVault: {
-          identityClientId: apimManagedIdentity.outputs.clientId
-          secretIdentifier: textAnalytics.outputs.exportedSecrets['${textAnalyticsResourceName}-key1'].secretUri
-        }
-      }
-    ]
+    enablePiiRedaction: usePiiRedaction
+    languageServiceUri: textAnalytics.outputs.endpointUri
+    languageServiceKeySecretUri: textAnalytics.outputs.exportedSecrets['${textAnalyticsResourceName}-key1'].secretUri
   }
   dependsOn: [
     vnet

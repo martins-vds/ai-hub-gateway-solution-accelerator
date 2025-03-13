@@ -26,6 +26,10 @@ param enableAIModelInference bool = true
 
 param enableOpenAIRealtime bool = true
 
+param enablePiiRedaction bool = true
+param languageServiceUri string = ''
+param languageServiceKeySecretUri string = ''
+
 param additionalNamedValues namedValueType[] = []
 
 // Networking
@@ -39,12 +43,17 @@ var openAiApiClientNamedValue = 'client-id'
 var openAiApiTenantNamedValue = 'tenant-id'
 var openAiApiAudienceNamedValue = 'audience'
 
+var languageServiceUriNamedValue = 'languageServiceUri'
+var languageServiceApiKeyNamedValue = 'languageServiceApiKey'
+
 var apiManagementMinApiVersion = '2021-08-01'
 
 // Add this variable near the top with other variables
 // var apimZones = sku == 'Premium' && skuCount > 1 ? ['1','2','3'] : []
 // Replace the existing apimZones variable
 var apimZones = (sku == 'Premium' && skuCount > 1) ? (skuCount == 2 ? ['1', '2'] : ['1', '2', '3']) : []
+
+var piiRedactionPolicy = enablePiiRedaction ? '<include-fragment fragment-id="pii-redaction" />' : ''
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = {
   name: applicationInsightsName
@@ -117,7 +126,7 @@ module apimOpenaiApi './api.bicep' = {
     subscriptionKeyName: 'api-key'
     openApiSpecification: string(loadYamlContent('./openai-api/oai-api-spec-2024-10-21.yaml'))
     apiDescription: 'Azure OpenAI API'
-    policyDocument: loadTextContent('./policies/openai_api_policy.xml')
+    policyDocument: replace(loadTextContent('./policies/openai_api_policy.xml'), '{{PII_REDACTION_FRAGMENT}}', piiRedactionPolicy)
     enableAPIDeployment: true
   }
   dependsOn: [
@@ -129,6 +138,7 @@ module apimOpenaiApi './api.bicep' = {
     openAiBackends
     throttlingEventsPolicyFragment
     dynamicThrottlingAssignmentFragment
+    piiRedactionFragment
   ]
 }
 
@@ -417,6 +427,29 @@ resource apimOpenaiApiAudienceiNamedValue 'Microsoft.ApiManagement/service/named
   }
 }
 
+resource apiLanguageServiceUriNamedValue 'Microsoft.ApiManagement/service/namedValues@2022-08-01' = if (enablePiiRedaction) {
+  name: languageServiceUriNamedValue
+  parent: apimService
+  properties: {
+    displayName: languageServiceUriNamedValue
+    secret: true
+    value: languageServiceUri
+  }
+}
+
+resource apiLanguageServiceApiKeyNamedValue 'Microsoft.ApiManagement/service/namedValues@2022-08-01' = if (enablePiiRedaction) {
+  name: languageServiceApiKeyNamedValue
+  parent: apimService
+  properties: {
+    displayName: languageServiceApiKeyNamedValue
+    secret: true
+    keyVault: {
+      identityClientId: managedIdentity.properties.clientId
+      secretIdentifier: languageServiceKeySecretUri
+    }
+  }
+}
+
 resource namedValues 'Microsoft.ApiManagement/service/namedValues@2022-08-01' = [
   for namedValue in additionalNamedValues: {
     name: namedValue.name
@@ -515,6 +548,20 @@ resource dynamicThrottlingAssignmentFragment 'Microsoft.ApiManagement/service/po
     format: 'rawxml'
   }
 }
+
+resource piiRedactionFragment 'Microsoft.ApiManagement/service/policyFragments@2022-08-01' = if (enablePiiRedaction) {
+  parent: apimService
+  name: 'pii-redaction'
+  properties: {
+    value: loadTextContent('./policies/frag-pii-redaction.xml')
+    format: 'rawxml'
+  }
+  dependsOn: [
+    apiLanguageServiceUriNamedValue
+    apiLanguageServiceApiKeyNamedValue
+  ]
+}
+
 
 resource apimLogger 'Microsoft.ApiManagement/service/loggers@2022-08-01' = {
   name: 'appinsights-logger'

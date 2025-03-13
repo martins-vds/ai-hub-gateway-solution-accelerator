@@ -1,6 +1,9 @@
 <policies>
     <inbound>
         <base />
+
+        {{PII_REDACTION_FRAGMENT}}
+
         <!-- AAD Authorization -->
         <!-- Enabled if entra-validate named value is set to true -->
         <include-fragment fragment-id="aad-auth" />
