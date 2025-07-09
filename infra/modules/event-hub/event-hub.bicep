@@ -53,15 +53,14 @@ resource eventHubNamespace 'Microsoft.EventHub/namespaces@2024-05-01-preview' = 
       virtualNetworkRules: virtualNetworkRules
     }
   }
-}
 
-resource eventHub 'Microsoft.EventHub/namespaces/eventhubs@2024-05-01-preview' = {
-  name: 'ai-usage'
-  parent: eventHubNamespace
-  properties: {
-    messageRetentionInDays: 7
-    partitionCount: 2
-    status: 'Active'
+  resource eventHub 'eventhubs' = {
+    name: 'ai-usage'
+    properties: {
+      messageRetentionInDays: 7
+      partitionCount: 2
+      status: 'Active'
+    }
   }
 }
 
@@ -82,5 +81,5 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
 }
 
 output eventHubNamespaceName string = eventHubNamespace.name
-output eventHubName string = eventHub.name
+output eventHubName string = eventHubNamespace::eventHub.name
 output eventHubEndpoint string = eventHubNamespace.properties.serviceBusEndpoint

@@ -31,7 +31,7 @@ resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing 
   parent: vnet
 }
 
-resource privateLinkScope 'Microsoft.Insights/privateLinkScopes@2021-07-01-preview' = if (usePrivateLinkScope) {
+resource privateLinkScope 'Microsoft.Insights/privateLinkScopes@2021-09-01' = if (usePrivateLinkScope) {
   name: privateLinkScopeName
   location: 'global'
   properties: {

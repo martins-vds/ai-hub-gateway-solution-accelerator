@@ -574,6 +574,7 @@ module apim './modules/apim/apim.bicep' = {
     clientAppId: entraAuth ? entraClientId : null
     tenantId: entraAuth ? entraTenantId : null
     audience: entraAuth ? entraAudience : null
+    eventHubNamespaceName: eventHub.outputs.eventHubNamespaceName
     eventHubName: eventHub.outputs.eventHubName
     eventHubEndpoint: eventHub.outputs.eventHubEndpoint
     apimSubnetId: useExistingVnet ? vnetExisting.outputs.apimSubnetId : vnet.outputs.apimSubnetId

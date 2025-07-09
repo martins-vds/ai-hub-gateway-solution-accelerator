@@ -16,6 +16,7 @@ param managedIdentityName string
 param clientAppId string = ' '
 param tenantId string = tenant().tenantId
 param audience string = 'https://cognitiveservices.azure.com/.default'
+param eventHubNamespaceName string
 param eventHubName string
 param eventHubEndpoint string
 
@@ -63,8 +64,13 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-
   name: managedIdentityName
 }
 
+resource eventHubNamespace 'Microsoft.EventHub/namespaces@2024-01-01' existing = {
+  name: eventHubNamespaceName
+}
+
 resource eventHub 'Microsoft.EventHub/namespaces/eventhubs@2024-01-01' existing = {
   name: eventHubName
+  parent: eventHubNamespace
 }
 
 resource apimService 'Microsoft.ApiManagement/service@2024-05-01' = {
@@ -621,7 +627,7 @@ resource apimAppInsights 'Microsoft.ApiManagement/service/diagnostics@2024-05-01
   }
 }
 
-resource ehUsageLogger 'Microsoft.ApiManagement/service/loggers@2024-05-01' = {
+resource ehUsageLogger 'Microsoft.ApiManagement/service/loggers@2022-08-01' = {
   name: 'usage-eventhub-logger'
   parent: apimService
   properties: {

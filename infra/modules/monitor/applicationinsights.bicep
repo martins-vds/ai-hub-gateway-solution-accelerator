@@ -10,7 +10,7 @@ param createDashboard bool
 // Networking
 param privateLinkScopeName string
 
-resource privateLinkScope 'Microsoft.Insights/privateLinkScopes@2023-06-01-preview' existing = if (privateLinkScopeName != '') {
+resource privateLinkScope 'Microsoft.Insights/privateLinkScopes@2021-09-01' existing = if (privateLinkScopeName != '') {
   name: privateLinkScopeName
 }
 
@@ -28,7 +28,7 @@ resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   }
 }
 
-resource appInsightsScopedResource 'Microsoft.Insights/privateLinkScopes/scopedResources@2023-06-01-preview' = if (privateLinkScopeName != '') {
+resource appInsightsScopedResource 'Microsoft.Insights/privateLinkScopes/scopedResources@2021-09-01' = if (privateLinkScopeName != '') {
   parent: privateLinkScope
   name: '${applicationInsights.name}-connection'
   properties: {

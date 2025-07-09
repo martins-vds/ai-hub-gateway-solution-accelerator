@@ -5,7 +5,7 @@ param tags object = {}
 // Networking
 param privateLinkScopeName string
 
-resource privateLinkScope 'Microsoft.Insights/privateLinkScopes@2021-07-01-preview' existing = if (privateLinkScopeName != '') {
+resource privateLinkScope 'Microsoft.Insights/privateLinkScopes@2021-09-01' existing = if (privateLinkScopeName != '') {
   name: privateLinkScopeName
 }
 
@@ -26,7 +26,7 @@ resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2025-02-01' = {
   })
 }
 
-resource logAnalyticsScopedResource 'Microsoft.Insights/privateLinkScopes/scopedResources@2023-06-01-preview' = if (privateLinkScopeName != '') {
+resource logAnalyticsScopedResource 'Microsoft.Insights/privateLinkScopes/scopedResources@2021-07-01-preview' = if (privateLinkScopeName != '') {
   parent: privateLinkScope
   name: '${logAnalytics.name}-connection'
   properties: {
