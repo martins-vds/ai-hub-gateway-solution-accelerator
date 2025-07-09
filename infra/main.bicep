@@ -161,6 +161,7 @@ var privateDnsZoneNames = [
   storageFilePrivateDnsZoneName
   storageTablePrivateDnsZoneName
   storageQueuePrivateDnsZoneName
+  textAnalyticsPrivateDnsZoneName
 ]
 
 // You can add more OpenAI instances by adding more objects to the openAiInstances object
