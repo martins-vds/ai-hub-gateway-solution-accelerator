@@ -93,8 +93,8 @@ param logicContentShareName string = 'usage-logic-content'
 @description('Provision stream analytics job, turn it on only if you need it. Azure Function App will be provisioned to process usage data from Event Hub.')
 param provisionStreamAnalytics bool = false
 
-@description('This is to use Azure Monitor Private Link Scope for Log Analytics and Application Insights. If existing vnet is used, this should not be enabled')
-param useAzureMonitorPrivateLinkScope bool = !useExistingVnet
+@description('This is to use Azure Monitor Private Link Scope for Log Analytics and Application Insights.')
+param useAzureMonitorPrivateLinkScope bool = true
 
 @description('Use PII redaction. If you want to use Text Analytics for PII redaction, this should be enabled')
 param usePiiRedaction bool = false
