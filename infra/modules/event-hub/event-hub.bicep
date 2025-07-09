@@ -11,6 +11,7 @@ param privateEndpointSubnetName string
 param eventHubDnsZoneName string
 
 param publicNetworkAccess string = 'Disabled'
+param virtualNetworkRules array = []
 
 // Use existing network/dns zone
 param dnsZoneRG string
@@ -41,6 +42,16 @@ resource eventHubNamespace 'Microsoft.EventHub/namespaces@2024-05-01-preview' = 
     isAutoInflateEnabled: false
     maximumThroughputUnits: 0
     publicNetworkAccess: publicNetworkAccess
+  }
+
+  resource network 'networkRuleSets' = if (publicNetworkAccess == 'Enabled') {
+    name: 'default'
+    properties: {
+      defaultAction: 'Deny'
+      trustedServiceAccessEnabled: true
+      publicNetworkAccess: publicNetworkAccess
+      virtualNetworkRules: virtualNetworkRules
+    }
   }
 }
 

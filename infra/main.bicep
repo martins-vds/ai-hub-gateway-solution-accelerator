@@ -536,6 +536,14 @@ module eventHub './modules/event-hub/event-hub.bicep' = {
     tags: tags
     eventHubPrivateEndpointName: 'eh-pe-${resourceToken}'
     vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
+    publicNetworkAccess: apimNetworkType == 'External' ? 'Enabled' : 'Disabled'
+    virtualNetworkRules: apimNetworkType == 'External'
+      ? [
+          {
+            id: vnet.outputs.apimSubnetId
+          }
+        ]
+      : []
     privateEndpointSubnetName: useExistingVnet
       ? vnetExisting.outputs.privateEndpointSubnetName
       : vnet.outputs.privateEndpointSubnetName
