@@ -22,12 +22,12 @@ param privateDnsZoneName string
 param ipRules array = []
 param virtualNetworkRules array = []
 
-param secretsExportConfiguration utils.secretsExportConfigurationType?
-
 // Use existing network/dns zone
 param dnsZoneRG string
 param dnsSubscriptionId string
 param vNetRG string
+
+param secretsExportConfiguration utils.secretsExportConfigurationType?
 
 resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
   name: vNetName

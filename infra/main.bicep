@@ -93,7 +93,7 @@ param logicContentShareName string = 'usage-logic-content'
 @description('Provision stream analytics job, turn it on only if you need it. Azure Function App will be provisioned to process usage data from Event Hub.')
 param provisionStreamAnalytics bool = false
 
-@description('This is to use Azure Monitor Private Link Scope for Log Analytics and Application Insights. If exsiting vnet is used, this should not be enabled')
+@description('This is to use Azure Monitor Private Link Scope for Log Analytics and Application Insights. If existing vnet is used, this should not be enabled')
 param useAzureMonitorPrivateLinkScope bool = !useExistingVnet
 
 @description('Use PII redaction. If you want to use Text Analytics for PII redaction, this should be enabled')
@@ -461,33 +461,34 @@ module openAis 'modules/ai/cognitiveservices.bicep' = [
   }
 ]
 
-module vault 'br/public:avm/res/key-vault/vault:0.13.0' = {
-  name: 'vault'
+module vault 'modules/security/key-vault.bicep' = {
   scope: resourceGroup
   params: {
-    name: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
-    enablePurgeProtection: false
-    enableRbacAuthorization: true
     location: location
-    sku: keyVaultSkuName
+    dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
+    dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
+    keyVaultName: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
+    privateDnsZoneName: keyVaultPrivateDnsZoneName
+    privateEndpointName: '${abbrs.privateEndpoints}keyvault-${resourceToken}'
+    privateEndpointSubnetName: useExistingVnet
+      ? vnetExisting.outputs.privateEndpointSubnetName
+      : vnet.outputs.privateEndpointSubnetName
+    vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
+    vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
+    publicNetworkAccess: apimNetworkType == 'External' ? 'Enabled' : 'Disabled'
     roleAssignments: [
       {
         principalId: apimManagedIdentity.outputs.principalId
         roleDefinitionIdOrName: 'Key Vault Secrets User'
       }
     ]
-    networkAcls: {
-      defaultAction: 'Deny'
-      ipRules: []
-      virtualNetworkRules: apimNetworkType == 'External'
-        ? [
-            {
-              id: vnet.outputs.apimSubnetId
-            }
-          ]
-        : []
-    }
-    publicNetworkAccess: apimNetworkType == 'External' ? 'Enabled' : 'Disabled'
+    virtualNetworkRules: apimNetworkType == 'External'
+      ? [
+          {
+            id: vnet.outputs.apimSubnetId
+          }
+        ]
+      : []
   }
 }
 
@@ -541,7 +542,6 @@ module eventHub './modules/event-hub/event-hub.bicep' = {
     location: location
     tags: tags
     eventHubPrivateEndpointName: 'eh-pe-${resourceToken}'
-    vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
     publicNetworkAccess: apimNetworkType == 'External' ? 'Enabled' : 'Disabled'
     virtualNetworkRules: apimNetworkType == 'External'
       ? [
@@ -555,6 +555,7 @@ module eventHub './modules/event-hub/event-hub.bicep' = {
       : vnet.outputs.privateEndpointSubnetName
     eventHubDnsZoneName: eventHubPrivateDnsZoneName
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
+    vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
   }
