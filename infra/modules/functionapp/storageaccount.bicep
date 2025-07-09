@@ -16,7 +16,10 @@ param storageTablePrivateEndpointName string
 param storageQueueDnsZoneName string
 param storageQueuePrivateEndpointName string
 // https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#storage-blob-data-owner
-var storageBlobDataOwnerRoleId = subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b7e6dc6d-f1e8-4753-8033-0f276bb0955b')
+var storageBlobDataOwnerRoleId = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  'b7e6dc6d-f1e8-4753-8033-0f276bb0955b'
+)
 
 // Use existing network/dns zone
 param dnsZoneRG string
@@ -29,18 +32,18 @@ param provisionLogicShare bool = true
 param functionContentShareName string
 param logicContentShareName string
 
-resource vnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
   name: vNetName
   scope: resourceGroup(vNetRG)
 }
 
 // Get existing subnet
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing = {
   name: privateEndpointSubnetName
   parent: vnet
 }
 
-resource functionAppmanagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
+resource functionAppmanagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = {
   name: functionAppManagedIdentityName
 }
 
@@ -52,8 +55,7 @@ resource functionAppmanagedIdentity 'Microsoft.ManagedIdentity/userAssignedIdent
 ])
 param storageAccountType string = 'Standard_LRS'
 
-
-resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2025-01-01' = {
   name: storageAccountName
   location: location
   tags: union(tags, { 'azd-service-name': storageAccountName })
@@ -73,14 +75,14 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2022-05-01' = {
   }
 }
 
-resource shareFunctionApp 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-05-01' = if (provisionFunctionShare) {
+resource shareFunctionApp 'Microsoft.Storage/storageAccounts/fileServices/shares@2025-01-01' = if (provisionFunctionShare) {
   name: '${storageAccountName}/default/${functionContentShareName}'
   dependsOn: [
     storageAccount
   ]
 }
 
-resource shareLogicApp 'Microsoft.Storage/storageAccounts/fileServices/shares@2022-05-01' = if (provisionLogicShare) {
+resource shareLogicApp 'Microsoft.Storage/storageAccounts/fileServices/shares@2025-01-01' = if (provisionLogicShare) {
   name: '${storageAccountName}/default/${logicContentShareName}'
   dependsOn: [
     storageAccount
@@ -159,6 +161,5 @@ module privateEndpointQueue '../networking/private-endpoint.bicep' = {
     dnsSubId: dnsSubscriptionId
   }
 }
-
 
 output storageAccountName string = storageAccount.name

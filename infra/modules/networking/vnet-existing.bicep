@@ -4,22 +4,22 @@ param apimSubnetName string
 param privateEndpointSubnetName string
 param functionAppSubnetName string
 
-resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' existing = {
+resource virtualNetwork 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
   name: name
   scope: resourceGroup(vnetRG)
 }
 
-resource apimSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
+resource apimSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing = {
   name: apimSubnetName
   parent: virtualNetwork
 }
 
-resource privateEndpointSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
+resource privateEndpointSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing = {
   name: privateEndpointSubnetName
   parent: virtualNetwork
 }
 
-resource functionAppSubnet 'Microsoft.Network/virtualNetworks/subnets@2023-11-01' existing = {
+resource functionAppSubnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing = {
   name: functionAppSubnetName
   parent: virtualNetwork
 }

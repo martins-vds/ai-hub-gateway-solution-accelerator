@@ -26,105 +26,105 @@ resource apimNsg 'Microsoft.Network/networkSecurityGroups@2020-07-01' = {
       {
         name: 'AllowPublicAccess' // Only External
         properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '443'
-            sourceAddressPrefix: 'Internet'
-            destinationAddressPrefix: 'VirtualNetwork'
-            access: 'Allow'
-            priority: 3000
-            direction: 'Inbound'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 3000
+          direction: 'Inbound'
         }
       }
       {
         name: 'AllowAPIMManagement'
         properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '3443'
-            sourceAddressPrefix: 'ApiManagement'
-            destinationAddressPrefix: 'VirtualNetwork'
-            access: 'Allow'
-            priority: 3010
-            direction: 'Inbound'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '3443'
+          sourceAddressPrefix: 'ApiManagement'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 3010
+          direction: 'Inbound'
         }
       }
       {
         name: 'AllowAPIMLoadBalancer'
         properties: {
-            protocol: '*'
-            sourcePortRange: '*'
-            destinationPortRange: '6390'
-            sourceAddressPrefix: 'AzureLoadBalancer'
-            destinationAddressPrefix: 'VirtualNetwork'
-            access: 'Allow'
-            priority: 3020
-            direction: 'Inbound'
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '6390'
+          sourceAddressPrefix: 'AzureLoadBalancer'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 3020
+          direction: 'Inbound'
         }
       }
       {
         name: 'AllowAzureTrafficManager' //Only External
         properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '443'
-            sourceAddressPrefix: 'AzureTrafficManager'
-            destinationAddressPrefix: 'VirtualNetwork'
-            access: 'Allow'
-            priority: 3030
-            direction: 'Inbound'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'AzureTrafficManager'
+          destinationAddressPrefix: 'VirtualNetwork'
+          access: 'Allow'
+          priority: 3030
+          direction: 'Inbound'
         }
       }
       {
         name: 'AllowStorage'
         properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '443'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'Storage'
-            access: 'Allow'
-            priority: 3000
-            direction: 'Outbound'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'Storage'
+          access: 'Allow'
+          priority: 3000
+          direction: 'Outbound'
         }
       }
       {
         name: 'AllowSql'
         properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '1433'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'Sql'
-            access: 'Allow'
-            priority: 3010
-            direction: 'Outbound'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '1433'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'Sql'
+          access: 'Allow'
+          priority: 3010
+          direction: 'Outbound'
         }
       }
       {
         name: 'AllowKeyVault'
         properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRange: '443'
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'AzureKeyVault'
-            access: 'Allow'
-            priority: 3020
-            direction: 'Outbound'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'AzureKeyVault'
+          access: 'Allow'
+          priority: 3020
+          direction: 'Outbound'
         }
       }
       {
         name: 'AllowMonitor'
         properties: {
-            protocol: 'Tcp'
-            sourcePortRange: '*'
-            destinationPortRanges: ['1886', '443']
-            sourceAddressPrefix: 'VirtualNetwork'
-            destinationAddressPrefix: 'AzureMonitor'
-            access: 'Allow'
-            priority: 3030
-            direction: 'Outbound'
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRanges: ['1886', '443']
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: 'AzureMonitor'
+          access: 'Allow'
+          priority: 3030
+          direction: 'Outbound'
         }
       }
     ]
@@ -182,41 +182,53 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
         name: apimSubnetName
         properties: {
           addressPrefix: apimSubnetAddressPrefix
-          networkSecurityGroup: apimNsg.id == '' ? null : {
-            id: apimNsg.id 
-          }
+          networkSecurityGroup: apimNsg.id == ''
+            ? null
+            : {
+                id: apimNsg.id
+              }
           routeTable: {
             id: apimRouteTable.id
           }
-          serviceEndpoints: enableServiceEndpointsForAPIM ? [
-            {
-              service: 'Microsoft.AzureActiveDirectory'
-            }
-            {
-              service: 'Microsoft.EventHub'
-            }
-            {
-              service: 'Microsoft.KeyVault'
-            }
-            {
-              service: 'Microsoft.ServiceBus'
-            }
-            {
-              service: 'Microsoft.Sql'
-            }
-            {
-              service: 'Microsoft.Storage'
-            }
-          ] : []
+          serviceEndpoints: enableServiceEndpointsForAPIM
+            ? [
+                {
+                  service: 'Microsoft.AzureActiveDirectory'
+                }
+                {
+                  service: 'Microsoft.EventHub'
+                }
+                {
+                  service: 'Microsoft.KeyVault'
+                }
+                {
+                  service: 'Microsoft.ServiceBus'
+                }
+                {
+                  service: 'Microsoft.Sql'
+                }
+                {
+                  service: 'Microsoft.Storage'
+                }
+                {
+                  service: 'Microsoft.CognitiveServices'
+                }
+                {
+                  service: 'Microsoft.AzureCosmosDB'
+                }
+              ]
+            : []
         }
       }
       {
         name: privateEndpointSubnetName
         properties: {
           addressPrefix: privateEndpointSubnetAddressPrefix
-          networkSecurityGroup: privateEndpointNsg.id == '' ? null : {
-            id: privateEndpointNsg.id
-          }
+          networkSecurityGroup: privateEndpointNsg.id == ''
+            ? null
+            : {
+                id: privateEndpointNsg.id
+              }
           privateEndpointNetworkPolicies: 'Disabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
         }
@@ -225,9 +237,11 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
         name: functionAppSubnetName
         properties: {
           addressPrefix: functionAppSubnetAddressPrefix
-          networkSecurityGroup: functionAppNsg.id == '' ? null : {
-            id: functionAppNsg.id
-          }
+          networkSecurityGroup: functionAppNsg.id == ''
+            ? null
+            : {
+                id: functionAppNsg.id
+              }
           privateEndpointNetworkPolicies: 'Enabled'
           privateLinkServiceNetworkPolicies: 'Enabled'
           delegations: [
@@ -242,7 +256,6 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
       }
     ]
   }
-  
 
   resource apimSubnet 'subnets' existing = {
     name: apimSubnetName
@@ -257,16 +270,18 @@ resource virtualNetwork 'Microsoft.Network/virtualNetworks@2019-11-01' = {
   }
 }
 
-resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = [for privateDnsZoneName in privateDnsZoneNames: {
-  name: '${privateDnsZoneName}/privateDnsZoneLink'
-  location: 'global'
-  properties: {
-    virtualNetwork: {
-      id: virtualNetwork.id
+resource privateDnsZoneLink 'Microsoft.Network/privateDnsZones/virtualNetworkLinks@2020-06-01' = [
+  for privateDnsZoneName in privateDnsZoneNames: {
+    name: '${privateDnsZoneName}/privateDnsZoneLink'
+    location: 'global'
+    properties: {
+      virtualNetwork: {
+        id: virtualNetwork.id
+      }
+      registrationEnabled: false
     }
-    registrationEnabled: false
   }
-}]
+]
 
 output virtualNetworkId string = virtualNetwork.id
 output vnetName string = virtualNetwork.name

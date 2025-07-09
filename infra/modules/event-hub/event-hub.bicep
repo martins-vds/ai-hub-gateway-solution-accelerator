@@ -17,13 +17,13 @@ param dnsZoneRG string
 param dnsSubscriptionId string
 param vNetRG string
 
-resource vnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
   name: vNetName
   scope: resourceGroup(vNetRG)
 }
 
 // Get existing subnet
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing = {
   name: privateEndpointSubnetName
   parent: vnet
 }

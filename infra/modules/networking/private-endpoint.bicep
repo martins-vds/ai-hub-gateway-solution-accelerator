@@ -8,13 +8,12 @@ param privateEndpointSubnetId string
 param dnsZoneRG string
 param dnsSubId string
 
-
-resource privateEndpointDnsZone 'Microsoft.Network/privateDnsZones@2020-06-01' existing = {
+resource privateEndpointDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = {
   name: dnsZoneName
-  scope: resourceGroup(dnsSubId ,dnsZoneRG)
+  scope: resourceGroup(dnsSubId, dnsZoneRG)
 }
 
-resource privateEndpoint 'Microsoft.Network/privateEndpoints@2022-09-01' = {
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2024-07-01' = {
   name: name
   location: location
   dependsOn: [
@@ -36,7 +35,7 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2022-09-01' = {
   }
 }
 
-resource privateEndpointDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2022-09-01' = {
+resource privateEndpointDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-07-01' = {
   parent: privateEndpoint
   name: 'privateDnsZoneGroup'
   properties: {

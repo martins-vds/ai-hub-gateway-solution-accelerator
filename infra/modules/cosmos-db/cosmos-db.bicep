@@ -93,18 +93,18 @@ param dnsZoneRG string
 param dnsSubscriptionId string
 
 param vNetRG string
-resource vnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
   name: vNetName
   scope: resourceGroup(vNetRG)
 }
 
 // Get existing subnet
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing = {
   name: privateEndpointSubnetName
   parent: vnet
 }
 
-resource account 'Microsoft.DocumentDB/databaseAccounts@2024-02-15-preview' = {
+resource account 'Microsoft.DocumentDB/databaseAccounts@2025-04-15' = {
   name: toLower(accountName)
   location: location
   tags: union(tags, { 'azd-service-name': accountName })
@@ -117,10 +117,11 @@ resource account 'Microsoft.DocumentDB/databaseAccounts@2024-02-15-preview' = {
     disableKeyBasedMetadataWriteAccess: true
     publicNetworkAccess: publicAccess
     virtualNetworkRules: virtualNetworkRules
+    isVirtualNetworkFilterEnabled: !empty(virtualNetworkRules)
   }
 }
 
-resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-02-15-preview' = {
+resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2025-04-15' = {
   parent: account
   name: databaseName
   properties: {
@@ -130,7 +131,7 @@ resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-02-15
   }
 }
 
-resource container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-02-15-preview' = {
+resource container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2025-04-15' = {
   parent: database
   name: containerName
   properties: {
@@ -153,7 +154,7 @@ resource container 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/container
   }
 }
 
-resource modelPricingContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-02-15-preview' = {
+resource modelPricingContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2025-04-15' = {
   parent: database
   name: pricingContainerName
   properties: {
@@ -176,7 +177,7 @@ resource modelPricingContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabas
   }
 }
 
-resource streamingExportConfigContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2024-02-15-preview' = {
+resource streamingExportConfigContainer 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases/containers@2025-04-15' = {
   parent: database
   name: streamingExportConfigContainerName
   properties: {

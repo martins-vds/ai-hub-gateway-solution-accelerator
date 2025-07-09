@@ -5,7 +5,7 @@ param location string = resourceGroup().location
 
 resource logicAppConnectionExisting 'Microsoft.Web/connections@2016-06-01' existing = {
   name: connectionName
-  resource accessPolicy 'accessPolicies@2016-06-01' = {
+  resource accessPolicy 'accessPolicies' = {
     name: accessPolicyName
     location: location
     properties: {

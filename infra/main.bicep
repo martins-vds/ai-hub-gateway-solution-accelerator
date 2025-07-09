@@ -294,7 +294,7 @@ var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 
 // Organize resources in a resource group
-resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2025-04-01' = {
   name: !empty(resourceGroupName) ? resourceGroupName : '${abbrs.resourcesResourceGroups}${environmentName}'
   location: location
   tags: tags
@@ -415,7 +415,7 @@ module monitoring './modules/monitor/monitoring.bicep' = {
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
     usePrivateLinkScope: useAzureMonitorPrivateLinkScope
-  }  
+  }
 }
 
 @batchSize(1)
@@ -451,11 +451,11 @@ module openAis 'modules/ai/cognitiveservices.bicep' = [
       vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
       dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
       dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
-    }    
+    }
   }
 ]
 
-module vault 'br/public:avm/res/key-vault/vault:0.11.0' = {
+module vault 'br/public:avm/res/key-vault/vault:0.13.0' = {
   name: 'vault'
   scope: resourceGroup
   params: {
@@ -543,7 +543,7 @@ module eventHub './modules/event-hub/event-hub.bicep' = {
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
-  } 
+  }
 }
 
 module apim './modules/apim/apim.bicep' = {
@@ -571,7 +571,7 @@ module apim './modules/apim/apim.bicep' = {
     enablePiiRedaction: usePiiRedaction
     languageServiceUri: textAnalytics.outputs.endpointUri
     languageServiceKeySecretUri: textAnalytics.outputs.exportedSecrets['${textAnalyticsResourceName}-key1'].secretUri
-  }  
+  }
 }
 
 module cosmosDb './modules/cosmos-db/cosmos-db.bicep' = {
@@ -600,7 +600,7 @@ module cosmosDb './modules/cosmos-db/cosmos-db.bicep' = {
           }
         ]
       : []
-  }  
+  }
 }
 
 module streamAnalyticsJob './modules/stream-analytics/stream-analytics.bicep' = if (provisionStreamAnalytics) {
@@ -644,7 +644,7 @@ module storageAccount './modules/functionapp/storageaccount.bicep' = {
     vNetRG: useExistingVnet ? vnetExisting.outputs.vnetRG : vnet.outputs.vnetRG
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
-  }  
+  }
 }
 
 module functionApp './modules/functionapp/functionapp.bicep' = if (provisionFunctionApp) {
@@ -667,7 +667,7 @@ module functionApp './modules/functionapp/functionapp.bicep' = if (provisionFunc
     cosmosContainerName: cosmosDb.outputs.cosmosDbContainerName
     functionAppSubnetId: useExistingVnet ? vnetExisting.outputs.functionAppSubnetId : vnet.outputs.functionAppSubnetId
     functionContentShareName: functionContentShareName
-  }  
+  }
 }
 
 module logicApp './modules/logicapp/logicapp.bicep' = {
@@ -697,7 +697,7 @@ module logicApp './modules/logicapp/logicapp.bicep' = {
     apimAppInsightsName: monitoring.outputs.applicationInsightsName
     functionAppSubnetId: useExistingVnet ? vnetExisting.outputs.functionAppSubnetId : vnet.outputs.functionAppSubnetId
     fileShareName: logicContentShareName
-  }  
+  }
 }
 
 output APIM_NAME string = apim.outputs.apimName

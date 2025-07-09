@@ -8,8 +8,7 @@ param cosmosDbDatabaseName string
 param cosmosDbContainerName string
 param managedIdentityName string
 
-
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = {
   name: managedIdentityName
 }
 

@@ -63,13 +63,13 @@ param apiProtocols array = [
   'https'
 ]
 
-resource apimService 'Microsoft.ApiManagement/service@2022-08-01' existing = {
+resource apimService 'Microsoft.ApiManagement/service@2024-05-01' existing = {
   name: serviceName
 }
 
 var isWebSotcketAPI = contains(apiProtocols, 'ws') || contains(apiProtocols, 'wss')
 
-resource apiDefinition 'Microsoft.ApiManagement/service/apis@2022-08-01' = if(enableAPIDeployment && !isWebSotcketAPI) {
+resource apiDefinition 'Microsoft.ApiManagement/service/apis@2024-05-01' = if (enableAPIDeployment && !isWebSotcketAPI) {
   name: apiName
   parent: apimService
   properties: {
@@ -89,7 +89,7 @@ resource apiDefinition 'Microsoft.ApiManagement/service/apis@2022-08-01' = if(en
   }
 }
 
-resource apiDefinitionWebSocket 'Microsoft.ApiManagement/service/apis@2022-08-01' = if(enableAPIDeployment && isWebSotcketAPI) {
+resource apiDefinitionWebSocket 'Microsoft.ApiManagement/service/apis@2024-05-01' = if (enableAPIDeployment && isWebSotcketAPI) {
   name: apiName
   parent: apimService
   properties: {
@@ -107,7 +107,7 @@ resource apiDefinitionWebSocket 'Microsoft.ApiManagement/service/apis@2022-08-01
   }
 }
 
-resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2022-08-01' = if(enableAPIDeployment && policyDocument != 'NA') {
+resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2024-05-01' = if (enableAPIDeployment && policyDocument != 'NA') {
   name: 'policy'
   parent: apiDefinition
   properties: {

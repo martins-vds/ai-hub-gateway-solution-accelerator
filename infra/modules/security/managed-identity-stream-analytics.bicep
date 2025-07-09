@@ -4,22 +4,25 @@ param tags object = {}
 param cosmosDbAccountName string
 
 var docDbAccNativeContributorRoleDefinitionId = '00000000-0000-0000-0000-000000000002'
-var eventHubsDataOwnerRoleDefinitionId = resourceId('Microsoft.Authorization/roleDefinitions', 'f526a384-b230-433a-b45c-95f59c4a2dec')
+var eventHubsDataOwnerRoleDefinitionId = resourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  'f526a384-b230-433a-b45c-95f59c4a2dec'
+)
 
-resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-02-15-preview' existing = {
+resource cosmosDbAccount 'Microsoft.DocumentDB/databaseAccounts@2025-04-15' existing = {
   name: cosmosDbAccountName
 }
 
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' = {
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' = {
   name: name
   location: location
   tags: union(tags, { 'azd-service-name': name })
 }
 
-resource sqlRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
+resource sqlRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2025-04-15' = {
   name: guid(docDbAccNativeContributorRoleDefinitionId, managedIdentity.id, cosmosDbAccount.id)
   parent: cosmosDbAccount
-  properties:{
+  properties: {
     principalId: managedIdentity.properties.principalId
     roleDefinitionId: '/${cosmosDbAccount.id}/sqlRoleDefinitions/${docDbAccNativeContributorRoleDefinitionId}'
     scope: cosmosDbAccount.id
@@ -36,6 +39,5 @@ resource eventHubsDataOwnerRoleAssignment 'Microsoft.Authorization/roleAssignmen
     principalType: 'ServicePrincipal'
   }
 }
-
 
 output managedIdentityName string = managedIdentity.name

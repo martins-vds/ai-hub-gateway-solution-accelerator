@@ -28,22 +28,23 @@ param secretsExportConfiguration utils.secretsExportConfigurationType?
 param dnsZoneRG string
 param dnsSubscriptionId string
 param vNetRG string
-resource vnet 'Microsoft.Network/virtualNetworks@2022-01-01' existing = {
+
+resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
   name: vNetName
   scope: resourceGroup(vNetRG)
 }
 
 // Get existing subnet
-resource subnet 'Microsoft.Network/virtualNetworks/subnets@2022-01-01' existing = {
+resource subnet 'Microsoft.Network/virtualNetworks/subnets@2024-07-01' existing = {
   name: privateEndpointSubnetName
   parent: vnet
 }
 
-resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-11-30' existing = {
+resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2024-11-30' existing = {
   name: managedIdentityName
 }
 
-resource account 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   name: name
   location: location
   tags: union(tags, { 'azd-service-name': name })
@@ -68,7 +69,7 @@ resource account 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 }
 
 @batchSize(1)
-resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2023-05-01' = [
+resource deployment 'Microsoft.CognitiveServices/accounts/deployments@2025-06-01' = [
   for deployment in deployments: {
     parent: account
     name: deployment.name
