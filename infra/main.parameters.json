@@ -31,6 +31,9 @@
     },
     "usePiiRedaction":{
       "value": "${USE_PII_REDACTION=true}"
+    },
+    "apimNetworkType": {
+      "value": "${APIM_NETWORK_TYPE=Internal}"
     }
   }
 }

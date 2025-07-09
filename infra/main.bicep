@@ -13,6 +13,7 @@ param environmentName string
   'westeurope'
   'southcentralus'
   'australiaeast'
+  'canadacentral'
   'canadaeast'
   'eastus'
   'eastus2'
@@ -38,7 +39,7 @@ param apimServiceName string = ''
 
 @description('Network type for API Management service. Leave blank to use default naming conventions.')
 @allowed(['External', 'Internal'])
-param apimNetworkType string = 'External'
+param apimNetworkType string = 'Internal'
 
 @description('API Management service SKU. Due to networking constraints, only Developer and Premium are supported.')
 @allowed(['Developer', 'Premium'])
