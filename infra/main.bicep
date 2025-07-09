@@ -109,7 +109,11 @@ param textAnalyticsSkuName string = 'F0'
 param keyVaultName string = ''
 
 @description('Key Vault SKU name.')
-param keyVaultSkuName string = 'Standard'
+@allowed([
+  'standard'
+  'premium'
+])
+param keyVaultSkuName string = 'standard'
 
 //Networking - VNet
 

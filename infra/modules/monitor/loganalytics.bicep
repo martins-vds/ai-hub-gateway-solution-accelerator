@@ -5,7 +5,7 @@ param tags object = {}
 // Networking
 param privateLinkScopeName string
 
-resource privateLinkScope 'Microsoft.Insights/privateLinkScopes@2023-06-01-preview' existing = if (privateLinkScopeName != '') {
+resource privateLinkScope 'Microsoft.Insights/privateLinkScopes@2021-07-01-preview' existing = if (privateLinkScopeName != '') {
   name: privateLinkScopeName
 }
 
