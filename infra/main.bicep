@@ -171,6 +171,7 @@ param openAiInstances object = {
   openAi1: {
     name: 'openai1'
     location: 'eastus'
+    disableLocalAuth: false
     deployments: [
       {
         name: 'chat'
@@ -213,6 +214,7 @@ param openAiInstances object = {
   openAi2: {
     name: 'openai2'
     location: 'northcentralus'
+    disableLocalAuth: false
     deployments: [
       {
         name: 'chat'
@@ -231,6 +233,7 @@ param openAiInstances object = {
   openAi3: {
     name: 'openai3'
     location: 'eastus2'
+    disableLocalAuth: false
     deployments: [
       {
         name: 'chat'
@@ -436,6 +439,7 @@ module openAis 'modules/ai/cognitiveservices.bicep' = [
       managedIdentityName: apimManagedIdentity.outputs.managedIdentityName
       vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
       vNetLocation: useExistingVnet ? vnetExisting.outputs.location : vnet.outputs.location
+      disableLocalAuth: config.value.?disableLocalAuth ?? true
       privateEndpointSubnetName: useExistingVnet
         ? vnetExisting.outputs.privateEndpointSubnetName
         : vnet.outputs.privateEndpointSubnetName
