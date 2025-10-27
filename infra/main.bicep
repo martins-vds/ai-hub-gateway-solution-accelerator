@@ -440,6 +440,7 @@ module openAis 'modules/ai/cognitiveservices.bicep' = [
       vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
       vNetLocation: useExistingVnet ? vnetExisting.outputs.location : vnet.outputs.location
       disableLocalAuth: config.value.?disableLocalAuth ?? true
+      disableLocalAuth: config.value.?disableLocalAuth ?? true
       privateEndpointSubnetName: useExistingVnet
         ? vnetExisting.outputs.privateEndpointSubnetName
         : vnet.outputs.privateEndpointSubnetName
