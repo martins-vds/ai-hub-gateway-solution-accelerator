@@ -14,6 +14,7 @@ param deploymentCapacity int = 1
 // Networking
 param publicNetworkAccess string = 'Disabled'
 param privateEndpointName string
+param disableLocalAuth bool = true
 param vNetName string
 param vNetLocation string
 param privateEndpointSubnetName string
@@ -56,7 +57,7 @@ resource account 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
     }
   }
   properties: {
-    disableLocalAuth: kind == 'TextAnalytics' ? false : true
+    disableLocalAuth: kind == 'TextAnalytics' ? false : disableLocalAuth
     customSubDomainName: toLower(name)
     publicNetworkAccess: publicNetworkAccess
     networkAcls: {
