@@ -70,7 +70,7 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
     groupIds: [
       'namespace'
     ]
-    dnsZoneName: eventHubDnsZoneName
+    dnsZoneNames: [eventHubDnsZoneName]
     name: eventHubPrivateEndpointName
     privateLinkServiceId: eventHubNamespace.id
     location: location

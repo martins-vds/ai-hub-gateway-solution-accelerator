@@ -143,7 +143,6 @@ param functionAppSubnetPrefix string = '10.170.0.128/26'
 var openAiPrivateDnsZoneName = 'privatelink.openai.azure.com'
 var textAnalyticsPrivateDnsZoneName = 'privatelink.cognitiveservices.azure.com'
 var keyVaultPrivateDnsZoneName = 'privatelink.vaultcore.azure.net'
-var monitorPrivateDnsZoneName = 'privatelink.monitor.azure.com'
 var eventHubPrivateDnsZoneName = 'privatelink.servicebus.windows.net'
 var cosmosDbPrivateDnsZoneName = 'privatelink.documents.azure.com'
 var storageBlobPrivateDnsZoneName = 'privatelink.blob.${environment().suffixes.storage}'
@@ -154,7 +153,6 @@ var storageQueuePrivateDnsZoneName = 'privatelink.queue.${environment().suffixes
 var privateDnsZoneNames = [
   openAiPrivateDnsZoneName
   keyVaultPrivateDnsZoneName
-  monitorPrivateDnsZoneName
   eventHubPrivateDnsZoneName
   cosmosDbPrivateDnsZoneName
   storageBlobPrivateDnsZoneName
@@ -162,6 +160,13 @@ var privateDnsZoneNames = [
   storageTablePrivateDnsZoneName
   storageQueuePrivateDnsZoneName
   textAnalyticsPrivateDnsZoneName
+]
+
+var monitorDnsZoneNames = [
+  'privatelink.monitor.azure.com'
+  'privatelink.oms.opinsights.azure.com'
+  'privatelink.ods.opinsights.azure.com'
+  'privatelink.agentsvc.azure-automation.net'
 ]
 
 // You can add more OpenAI instances by adding more objects to the openAiInstances object
@@ -319,6 +324,16 @@ module dnsDeployment './modules/networking/dns.bicep' = [
   }
 ]
 
+module monitorDnsDeployment './modules/networking/dns.bicep' = [
+  for monitorDnsZoneName in monitorDnsZoneNames: if (!useExistingVnet) {
+    name: 'monitor-dns-deployment-${monitorDnsZoneName}'
+    scope: resourceGroup
+    params: {
+      name: monitorDnsZoneName
+    }
+  }
+]
+
 module vnet './modules/networking/vnet.bicep' = if (!useExistingVnet) {
   name: 'vnet'
   scope: resourceGroup
@@ -419,7 +434,7 @@ module monitoring './modules/monitor/monitoring.bicep' = {
     privateEndpointSubnetName: useExistingVnet
       ? vnetExisting.outputs.privateEndpointSubnetName
       : vnet.outputs.privateEndpointSubnetName
-    applicationInsightsDnsZoneName: monitorPrivateDnsZoneName
+    applicationInsightsDnsZoneNames: union(monitorDnsZoneNames, [storageBlobPrivateDnsZoneName])
     createDashboard: createAppInsightsDashboard
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
@@ -439,7 +454,6 @@ module openAis 'modules/ai/cognitiveservices.bicep' = [
       managedIdentityName: apimManagedIdentity.outputs.managedIdentityName
       vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
       vNetLocation: useExistingVnet ? vnetExisting.outputs.location : vnet.outputs.location
-      disableLocalAuth: config.value.?disableLocalAuth ?? true
       disableLocalAuth: config.value.?disableLocalAuth ?? true
       privateEndpointSubnetName: useExistingVnet
         ? vnetExisting.outputs.privateEndpointSubnetName

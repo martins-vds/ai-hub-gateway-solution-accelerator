@@ -91,7 +91,7 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
     groupIds: [
       'account'
     ]
-    dnsZoneName: privateDnsZoneName
+    dnsZoneNames: [privateDnsZoneName]
     name: privateEndpointName
     privateLinkServiceId: account.id
     location: vNetLocation

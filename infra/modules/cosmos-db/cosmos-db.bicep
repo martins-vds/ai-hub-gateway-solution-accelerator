@@ -206,7 +206,7 @@ module privateEndpoint '../networking/private-endpoint.bicep' = {
     groupIds: [
       'sql'
     ]
-    dnsZoneName: cosmosDnsZoneName
+    dnsZoneNames: [cosmosDnsZoneName]
     name: cosmosPrivateEndpointName
     privateLinkServiceId: account.id
     location: location

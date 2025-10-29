@@ -104,7 +104,7 @@ module privateEndpointBlob '../networking/private-endpoint.bicep' = {
     groupIds: [
       'blob'
     ]
-    dnsZoneName: storageBlobDnsZoneName
+    dnsZoneNames: [storageBlobDnsZoneName]
     name: storageBlobPrivateEndpointName
     privateLinkServiceId: storageAccount.id
     location: location
@@ -120,7 +120,7 @@ module privateEndpointFile '../networking/private-endpoint.bicep' = {
     groupIds: [
       'file'
     ]
-    dnsZoneName: storageFileDnsZoneName
+    dnsZoneNames: [storageFileDnsZoneName]
     name: storageFilePrivateEndpointName
     privateLinkServiceId: storageAccount.id
     location: location
@@ -136,7 +136,7 @@ module privateEndpointTable '../networking/private-endpoint.bicep' = {
     groupIds: [
       'table'
     ]
-    dnsZoneName: storageTableDnsZoneName
+    dnsZoneNames: [storageTableDnsZoneName]
     name: storageTablePrivateEndpointName
     privateLinkServiceId: storageAccount.id
     location: location
@@ -152,7 +152,7 @@ module privateEndpointQueue '../networking/private-endpoint.bicep' = {
     groupIds: [
       'queue'
     ]
-    dnsZoneName: storageQueueDnsZoneName
+    dnsZoneNames: [storageQueueDnsZoneName]
     name: storageQueuePrivateEndpointName
     privateLinkServiceId: storageAccount.id
     location: location

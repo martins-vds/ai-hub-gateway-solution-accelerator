@@ -1,23 +1,25 @@
 param name string
 param privateLinkServiceId string
 param groupIds array
-param dnsZoneName string
+param dnsZoneNames array = []
 param location string
 
 param privateEndpointSubnetId string
 param dnsZoneRG string
 param dnsSubId string
 
-resource privateEndpointDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing = {
-  name: dnsZoneName
-  scope: resourceGroup(dnsSubId, dnsZoneRG)
-}
+resource privateEndpointDnsZones 'Microsoft.Network/privateDnsZones@2024-06-01' existing = [
+  for zoneName in dnsZoneNames: {
+    name: zoneName
+    scope: resourceGroup(dnsSubId, dnsZoneRG)
+  }
+]
 
-resource privateEndpoint 'Microsoft.Network/privateEndpoints@2024-07-01' = {
+resource privateEndpoint 'Microsoft.Network/privateEndpoints@2024-10-01' = {
   name: name
   location: location
   dependsOn: [
-    privateEndpointDnsZone
+    privateEndpointDnsZones
   ]
   properties: {
     subnet: {
@@ -33,20 +35,19 @@ resource privateEndpoint 'Microsoft.Network/privateEndpoints@2024-07-01' = {
       }
     ]
   }
-}
 
-resource privateEndpointDnsGroup 'Microsoft.Network/privateEndpoints/privateDnsZoneGroups@2024-07-01' = {
-  parent: privateEndpoint
-  name: 'privateDnsZoneGroup'
-  properties: {
-    privateDnsZoneConfigs: [
-      {
-        name: 'default'
-        properties: {
-          privateDnsZoneId: privateEndpointDnsZone.id
+  resource privateDnsZoneGroups 'privateDnsZoneGroups' = {
+    name: 'privateDnsZoneGroup'
+    properties: {
+      privateDnsZoneConfigs: [
+        for (zoneName, index) in dnsZoneNames: {
+          name: zoneName
+          properties: {
+            privateDnsZoneId: privateEndpointDnsZones[index].id
+          }
         }
-      }
-    ]
+      ]
+    }
   }
 }
 

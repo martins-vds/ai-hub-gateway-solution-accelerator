@@ -13,7 +13,7 @@ param usePrivateLinkScope bool = true
 var privateLinkScopeName = 'ampls-monitoring'
 param vNetName string
 param privateEndpointSubnetName string
-param applicationInsightsDnsZoneName string
+param applicationInsightsDnsZoneNames array = []
 
 // Use existing network/dns zone
 param dnsZoneRG string
@@ -86,7 +86,7 @@ module privateEndpoint '../networking/private-endpoint.bicep' = if (usePrivateLi
     groupIds: [
       'azuremonitor'
     ]
-    dnsZoneName: applicationInsightsDnsZoneName
+    dnsZoneNames: applicationInsightsDnsZoneNames
     name: '${privateLinkScopeName}-pe'
     privateLinkServiceId: privateLinkScope.id
     location: location
