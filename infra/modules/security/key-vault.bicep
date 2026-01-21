@@ -18,6 +18,8 @@ param virtualNetworkRules array = []
 param dnsZoneRG string
 param dnsSubscriptionId string
 
+param tags object = {}
+
 resource vnet 'Microsoft.Network/virtualNetworks@2024-07-01' existing = {
   name: vNetName
   scope: resourceGroup(vNetRG)
@@ -37,6 +39,7 @@ resource privateDnsZone 'Microsoft.Network/privateDnsZones@2024-06-01' existing 
 module vault 'br/public:avm/res/key-vault/vault:0.13.0' = {
   name: 'vault'
   params: {
+    tags: tags
     name: keyVaultName
     enablePurgeProtection: false
     enableRbacAuthorization: true

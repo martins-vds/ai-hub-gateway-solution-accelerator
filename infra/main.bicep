@@ -292,7 +292,7 @@ param openAiSkuName string = 'S0'
 param deploymentCapacity int = 20
 
 @description('Tags to be applied to resources.')
-param tags object = { 'azd-env-name': environmentName }
+param tags object = { 'azd-env-name': environmentName, SecurityControl: 'Ignore' }
 
 @description('Should Entra ID validation be enabled')
 param entraAuth bool = false
@@ -320,6 +320,7 @@ module dnsDeployment './modules/networking/dns.bicep' = [
     scope: resourceGroup
     params: {
       name: privateDnsZoneName
+      tags: tags
     }
   }
 ]
@@ -330,6 +331,7 @@ module monitorDnsDeployment './modules/networking/dns.bicep' = [
     scope: resourceGroup
     params: {
       name: monitorDnsZoneName
+      tags: tags
     }
   }
 ]
@@ -484,6 +486,7 @@ module vault 'modules/security/key-vault.bicep' = {
   scope: resourceGroup
   params: {
     location: location
+    tags: tags
     dnsSubscriptionId: !empty(dnsSubscriptionId) ? dnsSubscriptionId : subscription().subscriptionId
     dnsZoneRG: !empty(dnsZoneRG) ? dnsZoneRG : resourceGroup.name
     keyVaultName: !empty(keyVaultName) ? keyVaultName : '${abbrs.keyVaultVaults}${resourceToken}'
