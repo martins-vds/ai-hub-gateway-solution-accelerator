@@ -523,6 +523,7 @@ module textAnalytics 'modules/ai/cognitiveservices.bicep' = if (usePiiRedaction)
     location: location
     tags: tags
     kind: 'TextAnalytics'
+    disableLocalAuth: false
     managedIdentityName: textAnalyticsManagedIdentity.outputs.managedIdentityName
     vNetName: useExistingVnet ? vnetExisting.outputs.vnetName : vnet.outputs.vnetName
     vNetLocation: useExistingVnet ? vnetExisting.outputs.location : vnet.outputs.location
